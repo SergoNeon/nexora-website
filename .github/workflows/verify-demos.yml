@@ -1,0 +1,29 @@
+name: Verify NEXORA live demos
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 7 * * 1'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify pages and capture genuine screenshots
+        run: node scripts/verify-demos.cjs
+      - name: Save screenshots and verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexora-verified-demos
+          path: verification/
+          retention-days: 30
